@@ -29,14 +29,14 @@ def main():
     D1 = np.load(PATH + "D1.npy")
     D2 = np.load(PATH + "D2.npy")
 
-    # 平行化変換のためのRとPおよび3次元変換行列Qを求める
+    # rectify images
     flags = 0
     alpha = 1
     image_size = (1980, 1080)
-    R1, R2, P1, P2, Q, validPixROI1, validPixROI2 = cv2.stereoRectify(
+    R1, R2, P1, P2, Q, roi1, roi2 = cv2.stereoRectify(
         A1, D1, A2, D2, image_size, R, T, flags, alpha, image_size)
 
-    # 平行化変換マップを求める
+    # undistortion and get rectify map
     m1type = cv2.CV_32FC1
     map1_l, map2_l = cv2.initUndistortRectifyMap(A1, D1, R1, P1, image_size, m1type)
     map1_r, map2_r = cv2.initUndistortRectifyMap(A2, D2, R2, P2, image_size, m1type)
@@ -51,11 +51,10 @@ def main():
         # load images
         bgr_left = cv2.imread(image_left, cv2.IMREAD_COLOR)
         bgr_right = cv2.imread(image_right, cv2.IMREAD_COLOR)
-        
         gray_left = cv2.cvtColor(bgr_left, cv2.COLOR_BGR2GRAY)
         gray_right = cv2.cvtColor(bgr_right , cv2.COLOR_BGR2GRAY)
 
-        # ReMapにより平行化を行う
+        # ReMap images
         interpolation = cv2.INTER_NEAREST
         rectified_image_left  = cv2.remap(gray_left,  map1_l, map2_l, interpolation) #interpolation省略不可
         rectified_image_right = cv2.remap(gray_right, map1_r, map2_r, interpolation)
@@ -65,33 +64,18 @@ def main():
         cv2.waitKey(0)
 
         # stereo block matching
-        matcher = cv2.StereoBM_create(
-            numDisparities = 16,
-            blockSize = 255
-        )
-        disparity = matcher.compute(rectified_image_left, rectified_image_right).astype(np.float32) / 16.0
-        cv2.imshow('disparity', disparity)
+        matcher = cv2.StereoBM_create(numDisparities = 256,blockSize = 15)
+        disparity = matcher.compute(rectified_image_left, rectified_image_right)
+        map = ( disparity - np.min(disparity) ) / ( np.max(disparity) - np.min(disparity) )
+        cv2.imshow('disparity', map)
         cv2.waitKey(0)
 
         # stereo semi global block matching
-        window_size = 3
-        matcher = cv2.StereoSGBM_create(
-            numDisparities = 16,
-            blockSize = 255,
-            P1 = 8*3*window_size**2,
-            P2 = 32*3*window_size**2,
-            disp12MaxDiff = 1,
-            uniquenessRatio = 10,
-            speckleWindowSize = 200,
-            speckleRange = 1
-        )
-        disparity = matcher.compute(rectified_image_left, rectified_image_right).astype(np.float32) / 16.0
-        cv2.imshow('disparity', disparity)
+        matcher = cv2.StereoSGBM_create(minDisparity = 10, numDisparities=256, blockSize=22)
+        disparity = matcher.compute(rectified_image_left, rectified_image_right)
+        map = ( disparity - np.min(disparity) ) / ( np.max(disparity) - np.min(disparity) )
+        cv2.imshow('disparity', map)
         cv2.waitKey(0)
-
-
-        cv2.destroyAllWindows()
-
 
     cv2.destroyAllWindows()
 
