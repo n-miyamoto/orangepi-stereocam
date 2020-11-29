@@ -81,8 +81,8 @@ def main():
     for i, image in enumerate(images_left):
         img_left = cv2.imread(image)
         img_right= cv2.imread(images_right[i])
-        resultImg_left  = cv2.undistort(img_left, A1, D1, None) # 内部パラメータを元に画像補正
-        resultImg_right = cv2.undistort(img_right, A2, D2, None) # 内部パラメータを元に画像補正
+        resultImg_left  = cv2.undistort(img_left, A1, D1, None)
+        resultImg_right = cv2.undistort(img_right, A2, D2, None)
 
         # show undistorted images 
         # cv2.imshow('undistorted img', resultImg_left)

@@ -56,7 +56,7 @@ def main():
 
         # ReMap images
         interpolation = cv2.INTER_NEAREST
-        rectified_image_left  = cv2.remap(gray_left,  map1_l, map2_l, interpolation) #interpolation省略不可
+        rectified_image_left  = cv2.remap(gray_left,  map1_l, map2_l, interpolation)
         rectified_image_right = cv2.remap(gray_right, map1_r, map2_r, interpolation)
         cv2.imshow('Rectified Left Target Image', rectified_image_left)
         cv2.waitKey(0)
