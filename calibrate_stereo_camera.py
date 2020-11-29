@@ -15,9 +15,9 @@ criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
 
 # path of calibration images
-PATH = "./calib_images_stereo"
-images_left = files =glob.glob(PATH + "/*-left.jpg")
-images_right = files =glob.glob(PATH + "/*-right.jpg")
+PATH = "./calib_images_stereo/"
+images_left = files =glob.glob(PATH + "*-left.jpg")
+images_right = files =glob.glob(PATH + "*-right.jpg")
 
 def main():
     # extract corners from chess board images
@@ -69,7 +69,14 @@ def main():
         print("D2 = \n", D2)
         print("R = \n", R)
         print("T = \n", T)
-        print("dist = ", D1.ravel())
+
+        # save camera parameters
+        np.save(PATH + "R", R)
+        np.save(PATH + "T", T)
+        np.save(PATH + "A1", A1)
+        np.save(PATH + "A2", A2)
+        np.save(PATH + "D1", D1)
+        np.save(PATH + "D2", D2)
 
     for i, image in enumerate(images_left):
         img_left = cv2.imread(image)
