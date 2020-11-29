@@ -56,13 +56,40 @@ def main():
         gray_right = cv2.cvtColor(bgr_right , cv2.COLOR_BGR2GRAY)
 
         # ReMapにより平行化を行う
-        interpolation = cv2.INTER_NEAREST # INTER_RINEARはなぜか使えない
+        interpolation = cv2.INTER_NEAREST
         rectified_image_left  = cv2.remap(gray_left,  map1_l, map2_l, interpolation) #interpolation省略不可
         rectified_image_right = cv2.remap(gray_right, map1_r, map2_r, interpolation)
         cv2.imshow('Rectified Left Target Image', rectified_image_left)
-        cv2.waitKey(0)  # なにかキーを押したらウィンドウを閉じる
+        cv2.waitKey(0)
         cv2.imshow('Rectified Right Target Image', rectified_image_right)
-        cv2.waitKey(0)  # なにかキーを押したらウィンドウを閉じる
+        cv2.waitKey(0)
+
+        # stereo block matching
+        matcher = cv2.StereoBM_create(
+            numDisparities = 16,
+            blockSize = 255
+        )
+        disparity = matcher.compute(rectified_image_left, rectified_image_right).astype(np.float32) / 16.0
+        cv2.imshow('disparity', disparity)
+        cv2.waitKey(0)
+
+        # stereo semi global block matching
+        window_size = 3
+        matcher = cv2.StereoSGBM_create(
+            numDisparities = 16,
+            blockSize = 255,
+            P1 = 8*3*window_size**2,
+            P2 = 32*3*window_size**2,
+            disp12MaxDiff = 1,
+            uniquenessRatio = 10,
+            speckleWindowSize = 200,
+            speckleRange = 1
+        )
+        disparity = matcher.compute(rectified_image_left, rectified_image_right).astype(np.float32) / 16.0
+        cv2.imshow('disparity', disparity)
+        cv2.waitKey(0)
+
+
         cv2.destroyAllWindows()
 
 
